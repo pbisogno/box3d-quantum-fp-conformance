@@ -1,0 +1,56 @@
+name: Public C fixed point conformance, protected data
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-fp-core-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  conformance:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.repository.private == false && github.event.repository.visibility == 'public' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      GITHUB_REPOSITORY_VISIBILITY: ${{ github.event.repository.visibility }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout the reviewed source revision
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          submodules: false
+          lfs: false
+      - name: Check preinstalled tools without installation
+        run: |
+          python3 -B - <<'PY'
+          import platform, shutil
+          if platform.system() != 'Linux' or platform.machine().lower() not in ('x86_64', 'amd64'):
+              raise SystemExit('This gate covers Linux x64 only.')
+          if not all(shutil.which(name) for name in ('python3', 'node', 'gcc', 'clang')):
+              raise SystemExit('A preinstalled tool is unavailable; installation is prohibited.')
+          PY
+          node --version
+      - name: Restore the authenticated immutable payload in temporary storage
+        env:
+          BFP_PAYLOAD_KEY: ${{ secrets.BFP_PAYLOAD_KEY }}
+        run: |
+          node tools/restore_payload.mjs --input protected/payload.aesgcm --output "$RUNNER_TEMP/bfp-public-payload"
+      - name: Compile strict C17 and compare all four profiles
+        run: |
+          python3 -B tools/run_conformance.py --visibility public --payload-dir "$RUNNER_TEMP/bfp-public-payload" --build-dir "$RUNNER_TEMP/bfp-public-build" --profiles gcc-o0,gcc-o2,clang-o2,gcc-ubsan
+      # Root owns this tool/CLI and authenticated archive format. The .draft
+      # extension stays until restore/archive/public inventory are reviewed.
+      - name: Retain diagnostics only through authenticated encrypted log output
+        if: ${{ always() }}
+        env:
+          BFP_PAYLOAD_KEY: ${{ secrets.BFP_PAYLOAD_KEY }}
+        run: |
+          node tools/archive_results.mjs --input "$RUNNER_TEMP/bfp-public-build"
