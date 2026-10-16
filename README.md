@@ -9,7 +9,14 @@ The first corpus contains 83,290 distinct requests covering 34 operations,
 including exact raw results and expected exception statuses. The original
 payload manifest is pinned to SHA-256
 `8d7708a1b7aeb04d2c91955d95392b77a8d7dd86762b7a34a8d3ed08efaf59ab`.
-Native execution results have not yet been established for this initial revision.
+The [first Linux x64 execution](https://github.com/pbisogno/box3d-quantum-fp-conformance/actions/runs/38975982905)
+passed all four profiles: 83,290 cases per profile, 333,160 comparisons and zero
+mismatches. All four complete output files have the same SHA-256. The full
+outputs were authenticated, decrypted and independently rechecked with the frozen
+Python comparator. See the [aggregate result](results/linux-x64-38975982905.json).
+GCC 13.3 emitted existing misleading-indentation warnings; Clang 18.1.3 emitted
+no compiler diagnostics. Runtime stdout/stderr were empty in all four profiles,
+including UBSan. The tested C sources were not changed after the run.
 
 The manual workflow uses the standard GitHub-hosted `ubuntu-24.04` Linux x64
 runner and preinstalled Node, Python, GCC and Clang. Profiles are GCC O0,
