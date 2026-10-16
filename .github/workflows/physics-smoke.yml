@@ -1,0 +1,92 @@
+name: Isolated B-FP native physics x64 and ARM64
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Explicit laboratory stage
+        required: true
+        type: choice
+        default: physics
+        options:
+          - preprocess
+          - physics
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bfp-physics-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preprocess:
+    if: ${{ inputs.mode == 'preprocess' && github.event.repository.private == false && github.event.repository.visibility == 'public' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      BFP_EXPECTED_ARCH: x64
+      GITHUB_REPOSITORY_VISIBILITY: ${{ github.event.repository.visibility }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          submodules: false
+          lfs: false
+      - name: Restore authenticated pinned declaration sources
+        env:
+          BFP_PAYLOAD_KEY: ${{ secrets.BFP_PAYLOAD_KEY }}
+        run: node tools/physics_transport.mjs restore
+      - name: Obtain actual GCC preprocessor contexts without compilation or native execution
+        run: python3 -B tools/physics_runner.py preprocess
+      - name: Retain declaration contexts only in encrypted logs
+        if: ${{ always() }}
+        env:
+          BFP_PAYLOAD_KEY: ${{ secrets.BFP_PAYLOAD_KEY }}
+        run: node tools/physics_transport.mjs archive
+  physics:
+    if: ${{ inputs.mode == 'physics' && github.event_name == 'workflow_dispatch' && github.event.repository.private == false && github.event.repository.visibility == 'public' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 12
+    env:
+      BFP_EXPECTED_ARCH: ${{ matrix.arch }}
+      GITHUB_REPOSITORY_VISIBILITY: ${{ github.event.repository.visibility }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout reviewed laboratory controls
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          submodules: false
+          lfs: false
+      - name: Require native architecture and preinstalled tools
+        run: |
+          node -e "const a=process.env.BFP_EXPECTED_ARCH;if(process.platform!=='linux'||process.arch!==a)process.exit(1)"
+          python3 -B - <<'PY'
+          import shutil
+          if not all(shutil.which(n) for n in ('gcc','clang','node','python3')):
+              raise SystemExit('Missing preinstalled tool; installation is prohibited.')
+          PY
+      - name: Restore isolated authenticated physics sources
+        env:
+          BFP_PAYLOAD_KEY: ${{ secrets.BFP_PAYLOAD_KEY }}
+        run: node tools/physics_transport.mjs restore
+      - name: Compile whole C17 motor and run physical acceptance scenes
+        run: python3 -B tools/physics_runner.py run
+      - name: Retain private diagnostics in encrypted logs
+        if: ${{ always() }}
+        env:
+          BFP_PAYLOAD_KEY: ${{ secrets.BFP_PAYLOAD_KEY }}
+        run: node tools/physics_transport.mjs archive
