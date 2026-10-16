@@ -1,0 +1,365 @@
+{
+  "schema": "bfp-native-fidelity-public-arm64-result-v1",
+  "run_id": 38978967819,
+  "url": "https://github.com/pbisogno/box3d-quantum-fp-conformance/actions/runs/38978967819",
+  "source_commit": "702046c661ae4ca4f9300563a66c79bcc270ba22",
+  "manifest_sha256": "8d7708a1b7aeb04d2c91955d95392b77a8d7dd86762b7a34a8d3ed08efaf59ab",
+  "platform": {
+    "os": "Linux",
+    "architecture": "aarch64",
+    "runner": "ubuntu-24.04-arm"
+  },
+  "runtime_metadata": {
+    "expected_arch": "arm64",
+    "system": "Linux",
+    "machine": "aarch64",
+    "runner_arch": "ARM64",
+    "runner_environment": "github-hosted",
+    "byteorder": "little",
+    "pointer_bits": 64,
+    "kernel_release": "6.17.0-1022-azure",
+    "kernel_version": "#22-Ubuntu SMP Mon Jul 27 17:12:01 UTC 2026",
+    "logical_cpus": 4,
+    "cpu_fields": {
+      "model_name": null,
+      "cpu_implementer": "0x41",
+      "cpu_part": "0xd49",
+      "cpu_architecture": "8",
+      "features": "fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 sm3 sm4 asimddp sha512 sve asimdfhm uscat ilrcpc flagm sb paca pacg dcpodp sve2 sveaes svebitperm svesha3 svesm4 flagm2 frint svei8mm svebf16 i8mm bf16"
+    }
+  },
+  "unique_requests": 83290,
+  "operations": 34,
+  "total_profile_comparisons": 333160,
+  "all_profiles_passed": true,
+  "all_actual_output_files_identical": true,
+  "full_outputs_authenticated_and_rechecked_locally": true,
+  "native_c_executed_on_personal_workstation": false,
+  "profiles": [
+    {
+      "actual_sha256": "5269ffdd06240e5cbaa73fa1d9a3898ed9546c3dc3cc5b7b495cf810ddc4f037",
+      "binary_sha256": "22155117b8c16258007100eecde742828a45a257a6049a4d7316a134604e56a9",
+      "c_flags": [
+        "-std=c17",
+        "-pedantic-errors",
+        "-Wall",
+        "-Wextra",
+        "-O0"
+      ],
+      "comparison": {
+        "compared": 83290,
+        "issue_count": 0,
+        "passed": true,
+        "status_counts": {
+          "0": 83186,
+          "1": 92,
+          "2": 3,
+          "3": 6,
+          "6": 3
+        }
+      },
+      "compile_exit": 0,
+      "compile_stderr": {
+        "bytes": 2692,
+        "sha256": "f8c2b2027c86d329642832fde9e19b81adc5d09f5e3f43720f43bdaa1fa33497",
+        "text_emitted": false
+      },
+      "compile_stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "compiler": "gcc",
+      "compiler_target": "aarch64-linux-gnu",
+      "compiler_target_arch": "arm64",
+      "compiler_version_sha256": "8497f84b2b8334c413d9c6166bd39d009ba55d2ff60a8f23e66dfa5819c2b048",
+      "elapsed_seconds": 1.5824206849999989,
+      "elf": {
+        "byteorder": "little",
+        "class_bits": 64,
+        "e_machine": 183,
+        "expected_e_machine": 183,
+        "matches_expected_arch": true
+      },
+      "expected_arch": "arm64",
+      "passed": true,
+      "profile": "gcc-o0",
+      "run_exit": 0,
+      "run_stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "run_stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "schema": "public-qfp-native-profile-v1",
+      "stage": "compare",
+      "compiler_version": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+    },
+    {
+      "actual_sha256": "5269ffdd06240e5cbaa73fa1d9a3898ed9546c3dc3cc5b7b495cf810ddc4f037",
+      "binary_sha256": "10840fddebf6b2e07af3d22e33eb737c5efd1d3f30f39f5b648edf3741b786a8",
+      "c_flags": [
+        "-std=c17",
+        "-pedantic-errors",
+        "-Wall",
+        "-Wextra",
+        "-O2"
+      ],
+      "comparison": {
+        "compared": 83290,
+        "issue_count": 0,
+        "passed": true,
+        "status_counts": {
+          "0": 83186,
+          "1": 92,
+          "2": 3,
+          "3": 6,
+          "6": 3
+        }
+      },
+      "compile_exit": 0,
+      "compile_stderr": {
+        "bytes": 2692,
+        "sha256": "f8c2b2027c86d329642832fde9e19b81adc5d09f5e3f43720f43bdaa1fa33497",
+        "text_emitted": false
+      },
+      "compile_stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "compiler": "gcc",
+      "compiler_target": "aarch64-linux-gnu",
+      "compiler_target_arch": "arm64",
+      "compiler_version_sha256": "8497f84b2b8334c413d9c6166bd39d009ba55d2ff60a8f23e66dfa5819c2b048",
+      "elapsed_seconds": 1.5359923259999988,
+      "elf": {
+        "byteorder": "little",
+        "class_bits": 64,
+        "e_machine": 183,
+        "expected_e_machine": 183,
+        "matches_expected_arch": true
+      },
+      "expected_arch": "arm64",
+      "passed": true,
+      "profile": "gcc-o2",
+      "run_exit": 0,
+      "run_stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "run_stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "schema": "public-qfp-native-profile-v1",
+      "stage": "compare",
+      "compiler_version": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+    },
+    {
+      "actual_sha256": "5269ffdd06240e5cbaa73fa1d9a3898ed9546c3dc3cc5b7b495cf810ddc4f037",
+      "binary_sha256": "d1d87116efaa34311fac872732f91577bb22efa3afff0420b1e629222511e215",
+      "c_flags": [
+        "-std=c17",
+        "-pedantic-errors",
+        "-Wall",
+        "-Wextra",
+        "-O2"
+      ],
+      "comparison": {
+        "compared": 83290,
+        "issue_count": 0,
+        "passed": true,
+        "status_counts": {
+          "0": 83186,
+          "1": 92,
+          "2": 3,
+          "3": 6,
+          "6": 3
+        }
+      },
+      "compile_exit": 0,
+      "compile_stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "compile_stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "compiler": "clang",
+      "compiler_target": "aarch64-unknown-linux-gnu",
+      "compiler_target_arch": "arm64",
+      "compiler_version_sha256": "c0003bf916cbcae3cba03ba1cad136b6d501c1d343f380e58d5ba25cf693aafc",
+      "elapsed_seconds": 3.1682435720000015,
+      "elf": {
+        "byteorder": "little",
+        "class_bits": 64,
+        "e_machine": 183,
+        "expected_e_machine": 183,
+        "matches_expected_arch": true
+      },
+      "expected_arch": "arm64",
+      "passed": true,
+      "profile": "clang-o2",
+      "run_exit": 0,
+      "run_stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "run_stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "schema": "public-qfp-native-profile-v1",
+      "stage": "compare",
+      "compiler_version": "Ubuntu clang version 18.1.3 (1ubuntu1)"
+    },
+    {
+      "actual_sha256": "5269ffdd06240e5cbaa73fa1d9a3898ed9546c3dc3cc5b7b495cf810ddc4f037",
+      "binary_sha256": "e40074fcc08b482de24c806def3039be0afa0359af067bc875c183ad9bb00b87",
+      "c_flags": [
+        "-std=c17",
+        "-pedantic-errors",
+        "-Wall",
+        "-Wextra",
+        "-O1",
+        "-g",
+        "-fsanitize=undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "comparison": {
+        "compared": 83290,
+        "issue_count": 0,
+        "passed": true,
+        "status_counts": {
+          "0": 83186,
+          "1": 92,
+          "2": 3,
+          "3": 6,
+          "6": 3
+        }
+      },
+      "compile_exit": 0,
+      "compile_stderr": {
+        "bytes": 2692,
+        "sha256": "f8c2b2027c86d329642832fde9e19b81adc5d09f5e3f43720f43bdaa1fa33497",
+        "text_emitted": false
+      },
+      "compile_stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "compiler": "gcc",
+      "compiler_target": "aarch64-linux-gnu",
+      "compiler_target_arch": "arm64",
+      "compiler_version_sha256": "8497f84b2b8334c413d9c6166bd39d009ba55d2ff60a8f23e66dfa5819c2b048",
+      "elapsed_seconds": 1.6796362899999977,
+      "elf": {
+        "byteorder": "little",
+        "class_bits": 64,
+        "e_machine": 183,
+        "expected_e_machine": 183,
+        "matches_expected_arch": true
+      },
+      "expected_arch": "arm64",
+      "passed": true,
+      "profile": "gcc-ubsan",
+      "run_exit": 0,
+      "run_stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "run_stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text_emitted": false
+      },
+      "schema": "public-qfp-native-profile-v1",
+      "stage": "compare",
+      "compiler_version": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+    }
+  ],
+  "comparison_to_x64": {
+    "run_id": 38975982905,
+    "url": "https://github.com/pbisogno/box3d-quantum-fp-conformance/actions/runs/38975982905",
+    "source_commit": "22c1d515e8cf07aa3ee9a568c9a006805ce2c257",
+    "paired_profiles": [
+      {
+        "profile": "gcc-o0",
+        "byte_exact": true,
+        "lines_per_file": 83292,
+        "bytes_per_file": 13228348,
+        "actual_sha256": "5269ffdd06240e5cbaa73fa1d9a3898ed9546c3dc3cc5b7b495cf810ddc4f037",
+        "differing_lines": 0
+      },
+      {
+        "profile": "gcc-o2",
+        "byte_exact": true,
+        "lines_per_file": 83292,
+        "bytes_per_file": 13228348,
+        "actual_sha256": "5269ffdd06240e5cbaa73fa1d9a3898ed9546c3dc3cc5b7b495cf810ddc4f037",
+        "differing_lines": 0
+      },
+      {
+        "profile": "clang-o2",
+        "byte_exact": true,
+        "lines_per_file": 83292,
+        "bytes_per_file": 13228348,
+        "actual_sha256": "5269ffdd06240e5cbaa73fa1d9a3898ed9546c3dc3cc5b7b495cf810ddc4f037",
+        "differing_lines": 0
+      },
+      {
+        "profile": "gcc-ubsan",
+        "byte_exact": true,
+        "lines_per_file": 83292,
+        "bytes_per_file": 13228348,
+        "actual_sha256": "5269ffdd06240e5cbaa73fa1d9a3898ed9546c3dc3cc5b7b495cf810ddc4f037",
+        "differing_lines": 0
+      }
+    ],
+    "all_eight_complete_outputs_byte_identical": true,
+    "native_profiles_across_both_runs": 8,
+    "total_case_comparisons_across_both_runs": 666320,
+    "unique_requests_remain": 83290,
+    "c_sources_and_protected_manifest_identical": true,
+    "added_cross_hash_pairs_are_not_additional_independent_cases": true
+  },
+  "diagnostics": {
+    "runtime_stdout_empty_all_profiles": true,
+    "runtime_stderr_empty_all_profiles": true,
+    "ubsan_report_detected": false,
+    "gcc_existing_warnings": "-Wmisleading-indentation; same three source sites as x64",
+    "clang_compiler_diagnostics_empty": true
+  },
+  "execution": {
+    "manual": true,
+    "standard_public_github_hosted_runner": true,
+    "timeout_minutes": 12,
+    "installations": 0,
+    "emulation": false,
+    "artifacts_uploaded": false,
+    "caches_used": false,
+    "job_seconds": 24,
+    "c_and_comparison_step_seconds": 9,
+    "durations_are_not_physics_performance_benchmarks": true
+  },
+  "privacy": {
+    "sdk_assets_and_cases_published_plaintext": false,
+    "native_binaries_published": false,
+    "credentials_published": false
+  },
+  "scope": "Selected frozen scalar C kernels and finite corpus on tested Linux x64 and ARM64. Not exhaustive API compatibility, a complete FP Box3D engine, physical quality, snapshot/rollback, or other OS/CPUs."
+}

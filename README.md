@@ -18,8 +18,20 @@ GCC 13.3 emitted existing misleading-indentation warnings; Clang 18.1.3 emitted
 no compiler diagnostics. Runtime stdout/stderr were empty in all four profiles,
 including UBSan. The tested C sources were not changed after the run.
 
-The manual workflow uses the standard GitHub-hosted `ubuntu-24.04` Linux x64
-runner and preinstalled Node, Python, GCC and Clang. Profiles are GCC O0,
+The [native Linux ARM64 execution](https://github.com/pbisogno/box3d-quantum-fp-conformance/actions/runs/38978967819)
+passed the same four profiles and 333,160 comparisons with zero mismatches.
+The authenticated complete ARM64 outputs were rechecked with the frozen Python
+comparator and compared byte for byte against the complete x64 outputs. All
+eight response files are identical, with SHA-256
+`5269ffdd06240e5cbaa73fa1d9a3898ed9546c3dc3cc5b7b495cf810ddc4f037`.
+The corpus still contains 83,290 unique requests; repeated profiles and
+architectures do not add unique cases. See the
+[ARM64 and architecture comparison result](results/linux-arm64-38978967819.json).
+
+The manual workflows use standard GitHub-hosted `ubuntu-24.04` Linux x64 and
+`ubuntu-24.04-arm` Linux ARM64 runners and preinstalled Node, Python, GCC and
+Clang. The ARM64 gate checks the native host, compiler target and ELF64 AArch64
+machine before executing C, without emulation. Profiles are GCC O0,
 GCC O2, Clang O2 and GCC UBSan, all in strict C17 with pedantic errors.
 The job has a 12-minute limit. It installs no software, uses no cache and uploads
 no Actions artifacts. Standard runners in public repositories are
@@ -35,7 +47,8 @@ The key is absent from the repository and from the native subprocess environment
 
 These experiments concern the selected scalar C kernels and corpus. They do not
 establish exhaustive compatibility, physical accuracy, a complete Box3D FP port,
-snapshot/rollback support or behavior on another CPU architecture.
+snapshot/rollback support or behavior beyond the tested Linux x64 and ARM64
+configurations. CI step durations are not physics performance benchmarks.
 
 Existing provenance and SPDX notices are retained. This repository does not
 grant a redistribution license to the third-party SDK assets or assign a new
