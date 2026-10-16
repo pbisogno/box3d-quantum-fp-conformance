@@ -28,6 +28,17 @@ The corpus still contains 83,290 unique requests; repeated profiles and
 architectures do not add unique cases. See the
 [ARM64 and architecture comparison result](results/linux-arm64-38978967819.json).
 
+The [first scalar engine physics run](https://github.com/pbisogno/box3d-quantum-fp-conformance/actions/runs/38982104117)
+compiled and completed all eight native profiles. All eight complete observed
+state traces and metrics files are byte-identical. Physical acceptance remains
+failed: four of six scenarios passed and two failed in every profile, under
+criteria frozen before execution. Repeated profiles do not add unique scenarios.
+A [separate CMake library build](https://github.com/pbisogno/box3d-quantum-fp-conformance/actions/runs/38982521342)
+subsequently passed on both architectures after a packaging-only correction;
+it did not rerun or approve the failed physics criteria. See the
+[sanitized aggregate result](results/physics-smoke-x64-arm64-v1.json).
+New engine sources, fixtures and detailed diagnostics remain encrypted.
+
 The manual workflows use standard GitHub-hosted `ubuntu-24.04` Linux x64 and
 `ubuntu-24.04-arm` Linux ARM64 runners and preinstalled Node, Python, GCC and
 Clang. The ARM64 gate checks the native host, compiler target and ELF64 AArch64
@@ -45,10 +56,13 @@ Every payload file and the public C sources are checked before compilation.
 Public logs expose counts, status and hashes; full diagnostics are encrypted.
 The key is absent from the repository and from the native subprocess environment.
 
-These experiments concern the selected scalar C kernels and corpus. They do not
-establish exhaustive compatibility, physical accuracy, a complete Box3D FP port,
-snapshot/rollback support or behavior beyond the tested Linux x64 and ARM64
-configurations. CI step durations are not physics performance benchmarks.
+The kernel experiment concerns its selected scalar operations and corpus; the
+engine experiment concerns six initial scalar physics scenarios. Equal observed
+state traces do not establish equality of every hidden state field or a complete
+world checksum. These results do not establish exhaustive compatibility, general
+physical accuracy, production readiness, snapshot/rollback support, CCD,
+concurrency or behavior beyond the tested Linux x64 and ARM64 configurations.
+CI step durations are not physics performance benchmarks.
 
 Existing provenance and SPDX notices are retained. This repository does not
 grant a redistribution license to the third-party SDK assets or assign a new

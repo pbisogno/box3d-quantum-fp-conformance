@@ -1,0 +1,64 @@
+{
+  "schema": "bfp-public-physics-aggregate-v1",
+  "physics_execution": {
+    "run_id": 38982104117,
+    "url": "https://github.com/pbisogno/box3d-quantum-fp-conformance/actions/runs/38982104117",
+    "source_commit": "465ed5ecfc8137816d42f9ffa0109184cc804bf7",
+    "source_manifest_sha256": "e7cb7fdc96b0cd8fbc07b65c7505ae6b3eb21511f36d732815036da17c672a10",
+    "actions_conclusion": "failure",
+    "architectures": ["linux-x64", "linux-arm64"],
+    "native_execution_without_emulation": true,
+    "profiles_per_architecture": ["gcc-o0", "gcc-o2", "clang-o2", "gcc-ubsan"],
+    "profile_executions": 8,
+    "all_engine_compilations_passed": true,
+    "all_physics_executions_completed": true,
+    "criteria_frozen_before_execution": true,
+    "unique_scenarios": 6,
+    "scenarios_passed_per_profile": 4,
+    "scenarios_failed_per_profile": 2,
+    "physical_quality_passed": false,
+    "observed_states_per_profile": 1990,
+    "all_observed_state_files_byte_identical": true,
+    "observed_state_file_sha256": "eb28be991b1b7991309bdfa26c47c7709233090294c8cdea2b0b93c0fc295641",
+    "all_metrics_files_byte_identical": true,
+    "metrics_file_sha256": "2a84f91b286671104bde789bbd0b52438f6b2f6cb686c56b3025a1b1f0d751eb",
+    "all_recorded_state_hashes_independently_recomputed": true,
+    "unexpected_runtime_assert_or_ubsan_report": false,
+    "compiler_warnings_present": true,
+    "initial_cmake_packaging_gate_passed": false
+  },
+  "subsequent_library_build_only": {
+    "run_id": 38982521342,
+    "url": "https://github.com/pbisogno/box3d-quantum-fp-conformance/actions/runs/38982521342",
+    "source_commit": "6e500efe001ae8e5da375bfdaea0efcc2b9afc20",
+    "source_manifest_sha256": "5f9a6c2294c704fb89355858bd450149f55f0f65da57c84dfec4c7ff64ed2656",
+    "actions_conclusion": "success",
+    "both_native_architectures_configure_and_build_passed": true,
+    "c_translation_units_per_architecture": 53,
+    "previous_source_manifest_entries_unchanged": 130,
+    "packaging_file_added": 1,
+    "physical_tests_repeated": false
+  },
+  "execution": {
+    "standard_public_github_hosted_runners_only": true,
+    "software_installations": false,
+    "native_c_executed_on_personal_workstation": false,
+    "actions_artifacts_uploaded": false,
+    "actions_cache_used": false
+  },
+  "privacy": {
+    "new_engine_and_harness_sources_encrypted": true,
+    "licensed_fixtures_encrypted": true,
+    "full_diagnostics_and_traces_encrypted": true,
+    "public_result_is_aggregate_only": true
+  },
+  "scope": {
+    "equality_is_of_selected_observed_state_projection": true,
+    "complete_world_state_checksum_proven": false,
+    "snapshot_rollback_runtime_tested": false,
+    "ccd_tested": false,
+    "concurrent_workers_tested": false,
+    "performance_benchmark": false,
+    "production_readiness_established": false
+  }
+}
