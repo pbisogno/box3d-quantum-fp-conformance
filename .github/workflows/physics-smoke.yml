@@ -10,6 +10,7 @@ on:
         default: physics
         options:
           - preprocess
+          - compile
           - physics
 
 permissions:
@@ -46,7 +47,7 @@ jobs:
           BFP_PAYLOAD_KEY: ${{ secrets.BFP_PAYLOAD_KEY }}
         run: node tools/physics_transport.mjs archive
   physics:
-    if: ${{ inputs.mode == 'physics' && github.event_name == 'workflow_dispatch' && github.event.repository.private == false && github.event.repository.visibility == 'public' }}
+    if: ${{ (inputs.mode == 'physics' || inputs.mode == 'compile') && github.event_name == 'workflow_dispatch' && github.event.repository.private == false && github.event.repository.visibility == 'public' }}
     strategy:
       fail-fast: false
       matrix:
@@ -84,7 +85,14 @@ jobs:
           BFP_PAYLOAD_KEY: ${{ secrets.BFP_PAYLOAD_KEY }}
         run: node tools/physics_transport.mjs restore
       - name: Compile whole C17 motor and run physical acceptance scenes
-        run: python3 -B tools/physics_runner.py run
+        env:
+          BFP_REQUESTED_STAGE: ${{ inputs.mode }}
+        run: |
+          if [ "$BFP_REQUESTED_STAGE" = "compile" ]; then
+            python3 -B tools/physics_runner.py compile
+          else
+            python3 -B tools/physics_runner.py run
+          fi
       - name: Retain private diagnostics in encrypted logs
         if: ${{ always() }}
         env:

@@ -104,7 +104,7 @@ def approved():
     assert all(shutil.which(p) for p in ('gcc', 'clang', 'python3', 'node'))
     return arch
 
-def run_native():
+def run_native(compile_only=False):
     arch = approved()
     temp = Path(os.environ['RUNNER_TEMP']).resolve()
     assert temp != WORKSPACE and WORKSPACE not in temp.parents
@@ -134,9 +134,10 @@ def run_native():
                    kernel=platform.release(), runner_environment='github-hosted',
                    pointer_bits=64, byteorder='little', profiles=[], passed=False,
                    native_source_count=len(sources), source_commit=os.environ['GITHUB_SHA'],
-                   installations=0, emulation=False, diagnostics_plaintext_logged=False)
+                   installations=0, emulation=False, diagnostics_plaintext_logged=False,
+                   stage='compile-only' if compile_only else 'physical-acceptance')
     try:
-        for name in PROFILES:
+        for name in (('gcc-o0',) if compile_only else PROFILES):
             out = build / name; out.mkdir()
             binary = native / name
             compiler = shutil.which('clang' if name == 'clang-o2' else 'gcc')
@@ -163,6 +164,11 @@ def run_native():
                 machine = int.from_bytes(raw[18:20], 'little')
                 assert machine == (62 if arch == 'x64' else 183)
                 record.update(elf_machine=machine, binary_sha256=digest(raw))
+                if compile_only:
+                    record['passed']=True
+                    record['physical_test_executed']=False
+                    summary['profiles'].append(record)
+                    continue
                 args = [str(binary), '--lut-dir', str(payload / 'luts'), '--output', str(out)]
                 with (out / 'run.stdout').open('xb') as stdout, (out / 'run.stderr').open('xb') as stderr:
                     native_run = subprocess.run(args, env=env, cwd=payload, stdout=stdout, stderr=stderr, timeout=90)
@@ -180,7 +186,7 @@ def run_native():
                                   compile_exit=record['compile_exit'], run_exit=record.get('run_exit'),
                                   passed=record['passed'], manifest_sha256=summary['manifest_sha256'])), flush=True)
     finally:
-        summary['passed'] = len(summary['profiles']) == 4 and all(r['passed'] for r in summary['profiles'])
+        summary['passed'] = len(summary['profiles']) == (1 if compile_only else 4) and all(r['passed'] for r in summary['profiles'])
         write_json(build / 'summary.json', summary)
     return 0 if summary['passed'] else 1
 
@@ -255,6 +261,8 @@ if __name__ == '__main__':
             pack(Path(sys.argv[2]), Path(sys.argv[3]))
         elif sys.argv == [sys.argv[0], 'run']:
             raise SystemExit(run_native())
+        elif sys.argv == [sys.argv[0], 'compile']:
+            raise SystemExit(run_native(compile_only=True))
         elif sys.argv == [sys.argv[0], 'preprocess']:
             raise SystemExit(preprocess())
         else:
