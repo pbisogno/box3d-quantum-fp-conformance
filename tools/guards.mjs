@@ -1,13 +1,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
+export function approvedArchitecture(e=process.env,hostPlatform=process.platform,hostArch=process.arch) {
+  const expected=e.BFP_EXPECTED_ARCH;
+  const runner={x64:'X64',arm64:'ARM64'};
+  if(!Object.hasOwn(runner,expected)||hostPlatform!=='linux'||hostArch!==expected||e.RUNNER_ARCH!==runner[expected]||e.RUNNER_ENVIRONMENT!=='github-hosted') throw new Error('Native hosted runner architecture does not match explicit x64/arm64 scope');
+  return expected;
+}
 export function approvedRunner() {
   const e=process.env;
-  if(e.GITHUB_ACTIONS!=='true'||process.platform!=='linux'||process.arch!=='x64'||e.GITHUB_REPOSITORY!=='pbisogno/box3d-quantum-fp-conformance'||e.GITHUB_REPOSITORY_VISIBILITY!=='public'||e.GITHUB_REF!=='refs/heads/main'||e.GITHUB_EVENT_NAME!=='workflow_dispatch') throw new Error('Requires the approved public Linux x64 manual main-branch runner');
+  const expectedArch=approvedArchitecture();
+  if(e.GITHUB_ACTIONS!=='true'||e.GITHUB_REPOSITORY!=='pbisogno/box3d-quantum-fp-conformance'||e.GITHUB_REPOSITORY_VISIBILITY!=='public'||e.GITHUB_REF!=='refs/heads/main'||e.GITHUB_EVENT_NAME!=='workflow_dispatch') throw new Error('Requires the approved public native Linux manual main-branch runner');
   const event=JSON.parse(fs.readFileSync(e.GITHUB_EVENT_PATH,'utf8'));
   if(event.repository?.full_name!==e.GITHUB_REPOSITORY||event.repository?.private!==false||event.repository?.visibility!=='public'||event.repository?.default_branch!=='main') throw new Error('Repository event identity mismatch');
   const temp=fs.realpathSync(e.RUNNER_TEMP), workspace=fs.realpathSync(e.GITHUB_WORKSPACE);
   if(temp===workspace||temp.startsWith(workspace+path.sep)) throw new Error('Runner temporary directory must be outside checkout');
-  return {temp,workspace};
+  return {temp,workspace,expectedArch};
 }
 export function isolatedNewChild(value,temp,workspace) {
   const out=path.resolve(value);

@@ -17,6 +17,7 @@ jobs:
     timeout-minutes: 12
     env:
       GITHUB_REPOSITORY_VISIBILITY: ${{ github.event.repository.visibility }}
+      BFP_EXPECTED_ARCH: x64
     defaults:
       run:
         shell: bash

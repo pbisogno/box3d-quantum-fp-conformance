@@ -1,0 +1,58 @@
+name: Public C fixed point conformance ARM64, protected data
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-fp-core-arm64-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  conformance:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.repository.private == false && github.event.repository.visibility == 'public' }}
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 12
+    env:
+      GITHUB_REPOSITORY_VISIBILITY: ${{ github.event.repository.visibility }}
+      BFP_EXPECTED_ARCH: arm64
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout the reviewed source revision
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          submodules: false
+          lfs: false
+      - name: Check native ARM64 and preinstalled tools without installation
+        run: |
+          python3 -B - <<'PY'
+          import os, platform, shutil
+          if platform.system() != 'Linux' or platform.machine().lower() not in ('aarch64', 'arm64'):
+              raise SystemExit('This gate requires native Linux ARM64.')
+          if os.environ.get('BFP_EXPECTED_ARCH') != 'arm64' or os.environ.get('RUNNER_ARCH') != 'ARM64' or os.environ.get('RUNNER_ENVIRONMENT') != 'github-hosted':
+              raise SystemExit('This gate requires the explicitly authorized GitHub-hosted ARM64 runner.')
+          if not all(shutil.which(name) for name in ('python3', 'node', 'gcc', 'clang')):
+              raise SystemExit('A preinstalled tool is unavailable; installation is prohibited.')
+          PY
+          node --version
+          node -e "if (process.platform !== 'linux' || process.arch !== 'arm64') process.exit(1)"
+      - name: Restore the authenticated immutable payload in temporary storage
+        env:
+          BFP_PAYLOAD_KEY: ${{ secrets.BFP_PAYLOAD_KEY }}
+        run: |
+          node tools/restore_payload.mjs --input protected/payload.aesgcm --output "$RUNNER_TEMP/bfp-public-payload"
+      - name: Compile strict C17 and compare all four identical profiles
+        run: |
+          python3 -B tools/run_conformance.py --visibility public --payload-dir "$RUNNER_TEMP/bfp-public-payload" --build-dir "$RUNNER_TEMP/bfp-public-build" --profiles gcc-o0,gcc-o2,clang-o2,gcc-ubsan
+      - name: Retain diagnostics only through authenticated encrypted log output
+        if: ${{ always() }}
+        env:
+          BFP_PAYLOAD_KEY: ${{ secrets.BFP_PAYLOAD_KEY }}
+        run: |
+          node tools/archive_results.mjs --input "$RUNNER_TEMP/bfp-public-build"

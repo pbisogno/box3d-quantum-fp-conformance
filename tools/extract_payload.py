@@ -11,6 +11,14 @@ def unique(pairs):
     return out
 def read_json(raw):return json.loads(raw,object_pairs_hook=unique,parse_constant=lambda _:(_ for _ in()).throw(ValueError('Nonfinite JSON')))
 def digest(raw):return hashlib.sha256(raw).hexdigest()
+
+def approved_architecture(env,system,machine):
+    expected=env.get('BFP_EXPECTED_ARCH')
+    aliases={'x64':('x86_64','amd64'),'arm64':('aarch64','arm64')}
+    runners={'x64':'X64','arm64':'ARM64'}
+    if expected not in aliases or system!='Linux' or machine.lower() not in aliases[expected] or env.get('RUNNER_ARCH')!=runners[expected] or env.get('RUNNER_ENVIRONMENT')!='github-hosted':
+        raise ValueError('Native hosted architecture does not match authorized x64/arm64 scope')
+    return expected
 def validate_zip(archive,metadata):
     if metadata.get('schema')!='bfp-encrypted-payload-v1'or metadata.get('manifest_sha256')!=MANIFEST:raise ValueError('Metadata identity mismatch')
     records=metadata['files']
@@ -59,7 +67,8 @@ def extract(archive,metadata,out,public_src):
 def main():
     a=argparse.ArgumentParser();a.add_argument('--zip',required=True);a.add_argument('--metadata',required=True);a.add_argument('--output',required=True);a.add_argument('--public-src',required=True);v=a.parse_args()
     e=os.environ
-    if e.get('GITHUB_ACTIONS')!='true'or platform.system()!='Linux'or platform.machine().lower()not in ('x86_64','amd64')or e.get('GITHUB_REPOSITORY_VISIBILITY')!='public'or e.get('GITHUB_REPOSITORY')!='pbisogno/box3d-quantum-fp-conformance'or e.get('GITHUB_REF')!='refs/heads/main'or e.get('GITHUB_EVENT_NAME')!='workflow_dispatch':raise ValueError('Unapproved extraction environment')
+    approved_architecture(e,platform.system(),platform.machine())
+    if e.get('GITHUB_ACTIONS')!='true'or e.get('GITHUB_REPOSITORY_VISIBILITY')!='public'or e.get('GITHUB_REPOSITORY')!='pbisogno/box3d-quantum-fp-conformance'or e.get('GITHUB_REF')!='refs/heads/main'or e.get('GITHUB_EVENT_NAME')!='workflow_dispatch':raise ValueError('Unapproved extraction environment')
     event=read_json(Path(e['GITHUB_EVENT_PATH']).read_bytes());repo=event['repository']
     if repo['full_name']!=e['GITHUB_REPOSITORY']or repo['private']is not False or repo['visibility']!='public'or repo['default_branch']!='main':raise ValueError('Repository event mismatch')
     temp=Path(e['RUNNER_TEMP']).resolve();out=Path(v.output).absolute();workspace=Path(e['GITHUB_WORKSPACE']).resolve()
