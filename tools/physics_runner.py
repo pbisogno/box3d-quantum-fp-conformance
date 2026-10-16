@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import platform
+import signal
 import shutil
 import stat
 import struct
@@ -20,6 +21,11 @@ REPO = 'pbisogno/box3d-quantum-fp-conformance'
 PROFILES = ('gcc-o0', 'gcc-o2', 'clang-o2', 'gcc-ubsan')
 PER_PROFILE = {'compile.stdout', 'compile.stderr', 'compile.json', 'compiler.txt',
                'run.stdout', 'run.stderr', 'run.json', 'states.jsonl', 'metrics.json'}
+for _kind in ('derived', 'wide_mask'):
+    PER_PROFILE.update(_kind + '.' + suffix for suffix in (
+        'compile.stdout','compile.stderr','compile.json','run.stdout','run.stderr','run.json'))
+PER_PROFILE.update({'wide_mask.negative.stdout','wide_mask.negative.stderr'})
+PER_PROFILE.update({'cmake.configure.stdout','cmake.configure.stderr','cmake.build.stdout','cmake.build.stderr','cmake.json'})
 FLAGS = {'gcc-o0': ['-O0'], 'gcc-o2': ['-O2'], 'clang-o2': ['-O2'],
          'gcc-ubsan': ['-O1', '-g', '-fsanitize=undefined', '-fno-sanitize-recover=all']}
 WORKSPACE = Path(__file__).resolve().parent.parent
@@ -42,7 +48,7 @@ def source_name(name):
     p = Path(name)
     if '\\' in name or '..' in p.parts or p.is_absolute() or ':' in name:
         return False
-    return name == 'engine/LICENSE' or (
+    return name in ('engine/LICENSE','engine/CMakeLists.txt','engine/src/CMakeLists.txt') or (
         p.suffix in ('.c', '.h', '.inl') and
         (name.startswith('engine/src/') or name.startswith('engine/include/') or
          name.startswith('kernel/') or name.startswith('derived/') or name.startswith('harness/'))
@@ -106,6 +112,8 @@ def approved():
 
 def run_native(compile_only=False):
     arch = approved()
+    import resource
+    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     temp = Path(os.environ['RUNNER_TEMP']).resolve()
     assert temp != WORKSPACE and WORKSPACE not in temp.parents
     payload = temp / 'bfp-physics-payload'
@@ -179,7 +187,58 @@ def run_native(compile_only=False):
                     record['metrics_sha256'] = digest((out / 'metrics.json').read_bytes())
                 if (out / 'states.jsonl').is_file():
                     record['states_sha256'] = digest((out / 'states.jsonl').read_bytes())
-                record['passed'] = native_run.returncode == 0 and record.get('metrics_passed') is True and 'states_sha256' in record
+                micro=[]
+                for kind, filename in (('derived','test_derived_limits.c'),('wide_mask','test_masked_div_v1.c')):
+                    micro_binary = native / (name + '-' + kind)
+                    micro_command = command[:command.index(str(sources[0]))] + [
+                        str(payload/'kernel/fp.c'),str(payload/'harness'/filename),
+                        '-o',str(micro_binary),'-pthread','-lm']
+                    with (out/(kind+'.compile.stdout')).open('xb')as stdout, (out/(kind+'.compile.stderr')).open('xb')as stderr:
+                        comp=subprocess.run(micro_command,env=env,cwd=payload,stdout=stdout,stderr=stderr,timeout=45)
+                    item=dict(kind=kind,compile_exit=comp.returncode,passed=False)
+                    write_json(out/(kind+'.compile.json'),dict(command=micro_command,**item))
+                    if comp.returncode==0:
+                        raw=micro_binary.read_bytes()
+                        assert raw[:6]==b'\x7fELF\x02\x01' and int.from_bytes(raw[18:20],'little')==(62 if arch=='x64' else 183)
+                        with (out/(kind+'.run.stdout')).open('xb')as stdout, (out/(kind+'.run.stderr')).open('xb')as stderr:
+                            run=subprocess.run([str(micro_binary)],env=env,cwd=payload,stdout=stdout,stderr=stderr,timeout=15)
+                        item.update(run_exit=run.returncode)
+                        rows=[json.loads(line)for line in (out/(kind+'.run.stdout')).read_text().splitlines()]
+                        item['passed']=run.returncode==0 and len(rows)==1 and rows[0].get('passed')is True and not(out/(kind+'.run.stderr')).read_bytes()
+                        item['result']=rows
+                        if kind=='wide_mask':
+                            with (out/'wide_mask.negative.stdout').open('xb')as stdout, (out/'wide_mask.negative.stderr').open('xb')as stderr:
+                                negative=subprocess.run([str(micro_binary),'--active-zero-must-fail'],env=env,cwd=payload,stdout=stdout,stderr=stderr,timeout=15)
+                            start=[json.loads(line)for line in (out/'wide_mask.negative.stdout').read_text().splitlines()]
+                            valid=negative.returncode==-signal.SIGABRT and len(start)==1 and start[0].get('schema')=='bfp-wide-masked-div-negative-start-v1'
+                            item.update(expected_active_zero_SIGABRT=valid,negative_returncode=negative.returncode)
+                            item['passed']=item['passed']and valid
+                    write_json(out/(kind+'.run.json'),item);micro.append(item)
+                record['microtests']=micro
+                record['passed'] = native_run.returncode == 0 and record.get('metrics_passed') is True and 'states_sha256' in record and all(t['passed']for t in micro)
+                if name=='gcc-o0':
+                    cmake=shutil.which('cmake')
+                    assert cmake,'Preinstalled CMake missing; installation prohibited'
+                    cmake_dir=native/'cmake-build'
+                    configure=[cmake,'-S',str(payload/'engine'),'-B',str(cmake_dir),
+                               '-DCMAKE_BUILD_TYPE=Debug','-DCMAKE_C_COMPILER='+compiler,
+                               '-DCMAKE_C_FLAGS=-pedantic-errors -DB3_ENABLE_ASSERT',
+                               '-DBOX3D_FP_KERNEL_DIR='+str(payload/'kernel'),
+                               '-DBOX3D_FP_DERIVED_DIR='+str(payload/'derived'),
+                               '-DBOX3D_PROFILE=OFF','-DBOX3D_SAMPLES=OFF',
+                               '-DBOX3D_UNIT_TESTS=OFF','-DBOX3D_BENCHMARKS=OFF',
+                               '-DBOX3D_DOCS=OFF','-DFETCHCONTENT_FULLY_DISCONNECTED=ON']
+                    with (out/'cmake.configure.stdout').open('xb')as stdout,(out/'cmake.configure.stderr').open('xb')as stderr:
+                        configured=subprocess.run(configure,env=env,cwd=payload,stdout=stdout,stderr=stderr,timeout=30)
+                    built=None
+                    if configured.returncode==0:
+                        with (out/'cmake.build.stdout').open('xb')as stdout,(out/'cmake.build.stderr').open('xb')as stderr:
+                            built=subprocess.run([cmake,'--build',str(cmake_dir),'--parallel','2'],env=env,cwd=payload,stdout=stdout,stderr=stderr,timeout=150)
+                    record['cmake_library_build_passed']=configured.returncode==0 and built is not None and built.returncode==0
+                    record['passed']=record['passed']and record['cmake_library_build_passed']
+                    write_json(out/'cmake.json',dict(configure=configure,configure_exit=configured.returncode,
+                                                    build_exit=built.returncode if built else None,
+                                                    passed=record['cmake_library_build_passed'],installations=0))
                 write_json(out / 'run.json', record)
             summary['profiles'].append(record)
             print(json.dumps(dict(schema='bfp-physics-profile-v1', arch=arch, profile=name,
