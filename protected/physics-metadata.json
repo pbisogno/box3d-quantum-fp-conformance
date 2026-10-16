@@ -1,8 +1,8 @@
 {
   "schema": "bfp-physics-payload-v1",
-  "manifest_sha256": "e7cb7fdc96b0cd8fbc07b65c7505ae6b3eb21511f36d732815036da17c672a10",
-  "zip_bytes": 2146622,
-  "zip_sha256": "1b157afc44428f292fed73759554f8ad6246a7c12e4d24989c4091bb1818aff6",
-  "cipher_bytes": 2146658,
-  "cipher_sha256": "c493ae58e50385a5c129763513c3d8245ae58cbdadece9a5f11978608c4e36bc"
+  "manifest_sha256": "5f9a6c2294c704fb89355858bd450149f55f0f65da57c84dfec4c7ff64ed2656",
+  "zip_bytes": 2147661,
+  "zip_sha256": "c9f21568978329fd74f0edb86020c512a7006ae7692be83dadcc77be71b39b9c",
+  "cipher_bytes": 2147697,
+  "cipher_sha256": "a390ec1c63f1b817eaa227044a0782f966a9d53353eb472c9a2b4bd61623937b"
 }

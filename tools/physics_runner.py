@@ -48,7 +48,7 @@ def source_name(name):
     p = Path(name)
     if '\\' in name or '..' in p.parts or p.is_absolute() or ':' in name:
         return False
-    return name in ('engine/LICENSE','engine/CMakeLists.txt','engine/src/CMakeLists.txt') or (
+    return name in ('engine/LICENSE','engine/CMakeLists.txt','engine/src/CMakeLists.txt','engine/src/box3d.natvis') or (
         p.suffix in ('.c', '.h', '.inl') and
         (name.startswith('engine/src/') or name.startswith('engine/include/') or
          name.startswith('kernel/') or name.startswith('derived/') or name.startswith('harness/'))
@@ -75,9 +75,9 @@ def extract(zip_path, dest):
         total = 0
         for entry in entries:
             name = entry.filename
-            assert name == 'manifest.json' or source_name(name) or (
-                name.startswith('luts/') and Path(name).name in
-                ('FPSqrt.bytes', 'FPSinCos.bytes', 'FPAcos.bytes', 'FPAsin.bytes', 'FPAtan.bytes'))
+            assert name == 'manifest.json' or source_name(name) or name in {
+                'luts/FPSqrt.bytes','luts/FPSinCos.bytes','luts/FPAcos.bytes',
+                'luts/FPAsin.bytes','luts/FPAtan.bytes'}
             assert not entry.is_dir() and stat.S_ISREG(entry.external_attr >> 16)
             assert entry.file_size <= 16 * 1024 * 1024
             total += entry.file_size
@@ -287,6 +287,45 @@ def preprocess():
                           passed=passed, compiled=False, native_executed=False)))
     return 0 if passed else 1
 
+def cmake_only():
+    arch=approved();temp=Path(os.environ['RUNNER_TEMP']).resolve()
+    payload=temp/'bfp-physics-payload';build=temp/'bfp-physics-build';native=temp/'bfp-cmake-native'
+    assert not build.exists() and not native.exists()
+    build.mkdir();native.mkdir();out=build/'gcc-o0';out.mkdir()
+    manifest=json.loads((payload/'manifest.json').read_text())
+    assert manifest['mode']=='physics' and digest((payload/'manifest.json').read_bytes())==metadata()['manifest_sha256']
+    for row in manifest['files']:
+        data=(payload/row['path']).read_bytes()
+        assert len(data)==row['bytes']and digest(data)==row['sha256']
+    home=temp/'bfp-cmake-home';scratch=temp/'bfp-cmake-scratch';home.mkdir();scratch.mkdir()
+    env=dict(PATH=os.environ['PATH'],HOME=str(home),TMPDIR=str(scratch),LANG='C.UTF-8',LC_ALL='C.UTF-8')
+    compiler=shutil.which('gcc');cmake=shutil.which('cmake');assert cmake,'Preinstalled CMake missing; no installation allowed'
+    target=subprocess.run([compiler,'-dumpmachine'],env=env,capture_output=True,timeout=10,check=True).stdout.decode().strip()
+    assert target.split('-')[0]in (('x86_64',)if arch=='x64'else('aarch64','arm64'))
+    command=[cmake,'-S',str(payload/'engine'),'-B',str(native),'-DCMAKE_BUILD_TYPE=Debug',
+             '-DCMAKE_C_COMPILER='+compiler,'-DCMAKE_C_FLAGS=-pedantic-errors -DB3_ENABLE_ASSERT',
+             '-DBOX3D_FP_KERNEL_DIR='+str(payload/'kernel'),'-DBOX3D_FP_DERIVED_DIR='+str(payload/'derived'),
+             '-DBOX3D_PROFILE=OFF','-DBOX3D_SAMPLES=OFF','-DBOX3D_UNIT_TESTS=OFF',
+             '-DBOX3D_BENCHMARKS=OFF','-DBOX3D_DOCS=OFF','-DFETCHCONTENT_FULLY_DISCONNECTED=ON']
+    with(out/'cmake.configure.stdout').open('xb')as stdout,(out/'cmake.configure.stderr').open('xb')as stderr:
+        configured=subprocess.run(command,env=env,cwd=payload,stdout=stdout,stderr=stderr,timeout=30)
+    result=dict(configure=command,configure_exit=configured.returncode,build_exit=None,passed=False,installations=0,compiler_target=target)
+    if configured.returncode==0:
+        with(out/'cmake.build.stdout').open('xb')as stdout,(out/'cmake.build.stderr').open('xb')as stderr:
+            built=subprocess.run([cmake,'--build',str(native),'--parallel','2'],env=env,cwd=payload,stdout=stdout,stderr=stderr,timeout=150)
+        result['build_exit']=built.returncode
+        if built.returncode==0:
+            commands=json.loads((native/'compile_commands.json').read_text())
+            assert len(commands)>=50
+            assert all('-std=c17' in c['command'] and '-pedantic-errors' in c['command']and '-DBOX3D_DISABLE_SIMD' in c['command']for c in commands)
+            result.update(passed=True,C17_compile_commands=len(commands),all_compile_commands_sha256=digest((native/'compile_commands.json').read_bytes()))
+    write_json(out/'cmake.json',result)
+    write_json(build/'summary.json',dict(schema='bfp-physics-run-v1',stage='cmake-library',architecture=arch,
+               machine=platform.machine(),manifest_sha256=metadata()['manifest_sha256'],source_commit=os.environ['GITHUB_SHA'],
+               profiles=[dict(profile='gcc-o0',**result)],passed=result['passed'],physics_executed=False,installations=0))
+    print(json.dumps(dict(schema='bfp-cmake-library-v1',arch=arch,passed=result['passed'],physics_executed=False)))
+    return 0 if result['passed']else 1
+
 def pack(root, target):
     assert root.is_dir() and not root.is_symlink() and not target.exists()
     files = []; total = 0
@@ -322,6 +361,8 @@ if __name__ == '__main__':
             raise SystemExit(run_native())
         elif sys.argv == [sys.argv[0], 'compile']:
             raise SystemExit(run_native(compile_only=True))
+        elif sys.argv == [sys.argv[0], 'cmake']:
+            raise SystemExit(cmake_only())
         elif sys.argv == [sys.argv[0], 'preprocess']:
             raise SystemExit(preprocess())
         else:

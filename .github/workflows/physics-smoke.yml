@@ -11,6 +11,7 @@ on:
         options:
           - preprocess
           - compile
+          - cmake
           - physics
 
 permissions:
@@ -47,7 +48,7 @@ jobs:
           BFP_PAYLOAD_KEY: ${{ secrets.BFP_PAYLOAD_KEY }}
         run: node tools/physics_transport.mjs archive
   physics:
-    if: ${{ (inputs.mode == 'physics' || inputs.mode == 'compile') && github.event_name == 'workflow_dispatch' && github.event.repository.private == false && github.event.repository.visibility == 'public' }}
+    if: ${{ (inputs.mode == 'physics' || inputs.mode == 'compile' || inputs.mode == 'cmake') && github.event_name == 'workflow_dispatch' && github.event.repository.private == false && github.event.repository.visibility == 'public' }}
     strategy:
       fail-fast: false
       matrix:
@@ -90,6 +91,8 @@ jobs:
         run: |
           if [ "$BFP_REQUESTED_STAGE" = "compile" ]; then
             python3 -B tools/physics_runner.py compile
+          elif [ "$BFP_REQUESTED_STAGE" = "cmake" ]; then
+            python3 -B tools/physics_runner.py cmake
           else
             python3 -B tools/physics_runner.py run
           fi
